@@ -535,3 +535,358 @@ TMDb لا يعتمد هذا المشروع ولا يصادق عليه. يجب ا
 - Fallback data: جاهز.
 - Build production: ناجح.
 - GitHub repository: متاح.
+
+---
+
+# English Documentation
+
+## Cinema TMDb App
+
+Cinema is a bilingual Arabic/English movie and TV discovery platform built with **Next.js App Router** and React. It optionally integrates with the **TMDb REST API** to load currently playing movies, popular movies, popular TV shows, ratings, descriptions, posters, and cast information.
+
+The project is designed to work immediately with local fallback data. When a TMDb API key is configured, the fallback catalog is replaced with live TMDb content.
+
+## Features
+
+- Currently playing movies in Egypt.
+- Popular movies and TV shows from TMDb.
+- Movie and TV show browsing sections.
+- Latest content and top-rated content rows.
+- Search across the loaded movies and shows.
+- Details modal for every movie or show.
+- Lazy loading of cast and credits when a title is opened.
+- TMDb poster images with a placeholder fallback.
+- Arabic as the default language.
+- English language option.
+- Automatic RTL/LTR direction switching.
+- Language persistence through `localStorage`.
+- Dark and light theme switching.
+- Responsive design for desktop and mobile.
+- Local fallback content when TMDb is unavailable.
+
+## Tech Stack
+
+- Next.js 16
+- React
+- App Router
+- JavaScript
+- Global CSS in `app/globals.css`
+- TMDb REST API
+- npm
+- Turbopack
+
+## Requirements
+
+- Node.js 20 or newer is recommended.
+- npm.
+- A TMDb API key for live data. This is optional because fallback data is included.
+
+Check your installed versions:
+
+```bash
+node --version
+npm --version
+```
+
+## Local Setup
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/AbdelrahmanBasuonii/new_move_app_Next.js.git
+cd new_move_app_Next.js
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+## TMDb Configuration
+
+Create a `.env.local` file in the project root:
+
+```env
+NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key_here
+```
+
+The repository includes [.env.local.example](.env.local.example) as a template.
+
+After changing environment variables, restart the development server:
+
+```bash
+npm run dev
+```
+
+Without an API key, the application uses the fallback catalog from [lib/media.js](lib/media.js). With a valid key, it loads live data from TMDb.
+
+## TMDb Endpoints
+
+The TMDb client is implemented in [lib/tmdb.js](lib/tmdb.js).
+
+Currently playing movies:
+
+```text
+GET /movie/now_playing?region=EG&page=1
+```
+
+Popular movies:
+
+```text
+GET /discover/movie?sort_by=popularity.desc&primary_release_date.gte=2016-01-01&page=1
+```
+
+Popular TV shows:
+
+```text
+GET /discover/tv?sort_by=popularity.desc&page=1
+```
+
+Movie details and credits:
+
+```text
+GET /movie/{movie_id}?append_to_response=credits
+```
+
+TV details and credits:
+
+```text
+GET /tv/{tv_id}?append_to_response=credits
+```
+
+Poster images are loaded using:
+
+```text
+https://image.tmdb.org/t/p/w500/{poster_path}
+```
+
+## Project Structure
+
+```text
+.
+├── app/
+│   ├── globals.css          # Global styles and responsive layout
+│   ├── layout.js            # Root layout and metadata
+│   └── page.js              # Main state and component composition
+│
+├── components/
+│   ├── ContentRow.js        # A content row with reusable cards
+│   ├── DetailsModal.js      # Movie/show details dialog
+│   ├── Footer.js            # Application footer
+│   ├── Header.js            # Navigation, search, language and theme controls
+│   ├── Hero.js              # Main hero section
+│   └── MediaCard.js         # Reusable movie/show card
+│
+├── lib/
+│   ├── i18n.js              # Arabic/English translations and genre labels
+│   ├── media.js             # Image helper and fallback data
+│   └── tmdb.js              # TMDb client and API mapping
+│
+├── .env.local.example
+├── .gitignore
+├── package.json
+├── package-lock.json
+└── README.md
+```
+
+## Component Responsibilities
+
+### `app/page.js`
+
+The main client component owns the application state:
+
+- Movies and TV shows.
+- Active navigation section.
+- Selected title for the details modal.
+- Search query.
+- Theme state.
+- Current language.
+- TMDb catalog loading.
+- Details and cast loading.
+
+The page composes the UI from the components in `components/`.
+
+### `components/Header.js`
+
+Provides the logo, navigation, search input, language toggle, and theme toggle.
+
+### `components/Hero.js`
+
+Displays the main headline, introduction, background artwork, and movie discovery action.
+
+### `components/ContentRow.js`
+
+Renders a section title, content count, and a grid of reusable media cards.
+
+### `components/MediaCard.js`
+
+Displays the poster, rating, title, release year, and translated genre.
+
+### `components/DetailsModal.js`
+
+Displays title details, description, rating, poster, and the loaded cast.
+
+### `lib/tmdb.js`
+
+Exposes a `createTmdbClient` factory with:
+
+- `loadCatalog()` for the initial movie and TV catalog.
+- `loadDetails(item, type)` for title details and credits.
+
+### `lib/i18n.js`
+
+Contains the Arabic and English UI dictionaries and genre translation helpers.
+
+## Internationalization
+
+Arabic is the default language. The language button switches to English and updates:
+
+- All navigation labels.
+- Hero copy.
+- Section labels.
+- Search placeholder.
+- Details modal labels.
+- Footer text.
+- Local genre names.
+- Browser document title.
+- HTML `lang` attribute.
+- HTML text direction: `rtl` or `ltr`.
+
+The selected language is stored under:
+
+```text
+cinema-language
+```
+
+Movie and show names returned by TMDb depend on the language data available from TMDb. The UI itself is translated locally.
+
+## Available Scripts
+
+Development server:
+
+```bash
+npm run dev
+```
+
+Production build:
+
+```bash
+npm run build
+```
+
+Production server:
+
+```bash
+npm run start
+```
+
+Linting:
+
+```bash
+npm run lint
+```
+
+## Data Flow
+
+1. The application starts with fallback data from `lib/media.js`.
+2. If `NEXT_PUBLIC_TMDB_API_KEY` exists, a TMDb client is created.
+3. Movies and TV shows are requested in parallel.
+4. TMDb responses are mapped to one shared media shape.
+5. Live data replaces fallback data.
+6. Credits are requested only when a title is opened.
+7. Failed requests do not blank the page; existing data remains available.
+
+This keeps the initial interface usable and avoids loading cast data for every title on the first render.
+
+## Security Notes
+
+The current frontend uses `NEXT_PUBLIC_TMDB_API_KEY`, which makes the key available to the browser. This is acceptable for a personal demo, but it is not a fully private secret.
+
+For production:
+
+- Move TMDb requests to Next.js Route Handlers or a private backend.
+- Keep the server-side key in a non-public environment variable.
+- Add caching and rate limiting.
+- Restrict the TMDb key where possible.
+- Never commit `.env.local`.
+
+The `.gitignore` file excludes `.env*` while keeping `.env.local.example` available as documentation.
+
+## Production Deployment
+
+### Vercel
+
+1. Import the GitHub repository into Vercel.
+2. Keep the framework preset as Next.js.
+3. Add this environment variable:
+
+```text
+NEXT_PUBLIC_TMDB_API_KEY=your_tmdb_api_key
+```
+
+4. Deploy the project.
+
+### Node.js Server
+
+```bash
+npm install
+npm run build
+npm run start
+```
+
+To use another port:
+
+```bash
+npx next start -p 4000
+```
+
+## Troubleshooting
+
+### TMDb data does not appear
+
+Check that:
+
+- `.env.local` exists.
+- The variable name is exactly `NEXT_PUBLIC_TMDB_API_KEY`.
+- The development server was restarted after changing the file.
+- The key is active and valid.
+- The browser can reach `api.themoviedb.org`.
+
+### Only fallback data is visible
+
+This is expected when there is no key, the key is invalid, TMDb is unavailable, or the request limit has been reached.
+
+### Images do not load
+
+Check access to `image.tmdb.org` and the `poster_path` returned by TMDb. A placeholder is used when no poster is available.
+
+## Future Improvements
+
+- Dedicated URL routes for every movie and TV show.
+- Actor profiles and filmographies.
+- Pagination or infinite scrolling.
+- Genre, year, language, and rating filters.
+- User favorites and ratings.
+- Authentication and user accounts.
+- Database-backed watchlists.
+- Server-side TMDb proxy.
+- Request caching and skeleton loading.
+- Automated component and integration tests.
+- Full TMDb search endpoint integration.
+- Better Arabic translation fallback for movie and TV metadata.
+
+## TMDb Attribution
+
+This project uses TMDb data and images but is not endorsed or certified by TMDb.
+
+Review the TMDb terms before commercial distribution:
+
+[https://www.themoviedb.org/terms-of-use](https://www.themoviedb.org/terms-of-use)
